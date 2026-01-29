@@ -1,0 +1,29 @@
+﻿.Label {
+    font-size: larger;
+    font-family: Arial;
+    font-variant-caps: initial
+}
+
+.Errorlable {
+    font-size: larger;
+    font-display: auto;
+    font-family: 'Times New Roman';
+    font-variant-caps: initial
+}
+
+.Textbox {
+    border: 3px;
+}
+
+.Button {
+    padding: 8px 20px;
+    font-size: 15px;
+    text-align: center;
+    cursor: pointer;
+    outline: none;
+    color: #fff;
+    background-color: #04AA6D;
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 4px #999;
+}

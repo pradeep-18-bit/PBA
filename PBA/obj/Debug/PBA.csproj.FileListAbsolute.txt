@@ -1,0 +1,21 @@
+C:\Users\Dell\documents\visual studio 2010\Projects\PBA\PBA\bin\PBA.dll
+C:\Users\Dell\documents\visual studio 2010\Projects\PBA\PBA\bin\PBA.pdb
+C:\Users\Dell\documents\visual studio 2010\Projects\PBA\PBA\obj\Debug\PBA.dll
+C:\Users\Dell\documents\visual studio 2010\Projects\PBA\PBA\obj\Debug\PBA.pdb
+C:\Users\Dell\documents\visual studio 2010\Projects\PBA\PBA\obj\Debug\PBA.csprojResolveAssemblyReference.cache
+C:\Users\Pradeep\new project\PBA\PBA\PBA\bin\PBA.dll.config
+C:\Users\Pradeep\new project\PBA\PBA\PBA\bin\PBA.dll
+C:\Users\Pradeep\new project\PBA\PBA\PBA\bin\PBA.pdb
+C:\Users\Pradeep\new project\PBA\PBA\PBA\bin\EntityFramework.dll
+C:\Users\Pradeep\new project\PBA\PBA\PBA\bin\EntityFramework.SqlServer.dll
+C:\Users\Pradeep\new project\PBA\PBA\PBA\bin\Microsoft.Configuration.ConfigurationBuilders.Base.dll
+C:\Users\Pradeep\new project\PBA\PBA\PBA\bin\Microsoft.Configuration.ConfigurationBuilders.UserSecrets.dll
+C:\Users\Pradeep\new project\PBA\PBA\PBA\bin\EntityFramework.xml
+C:\Users\Pradeep\new project\PBA\PBA\PBA\bin\EntityFramework.SqlServer.xml
+C:\Users\Pradeep\new project\PBA\PBA\PBA\bin\Microsoft.Configuration.ConfigurationBuilders.Base.xml
+C:\Users\Pradeep\new project\PBA\PBA\PBA\bin\Microsoft.Configuration.ConfigurationBuilders.UserSecrets.xml
+C:\Users\Pradeep\new project\PBA\PBA\PBA\obj\Debug\PBA.csproj.AssemblyReference.cache
+C:\Users\Pradeep\new project\PBA\PBA\PBA\obj\Debug\PBA.csproj.CoreCompileInputs.cache
+C:\Users\Pradeep\new project\PBA\PBA\PBA\obj\Debug\PBA.csproj.Up2Date
+C:\Users\Pradeep\new project\PBA\PBA\PBA\obj\Debug\PBA.dll
+C:\Users\Pradeep\new project\PBA\PBA\PBA\obj\Debug\PBA.pdb
