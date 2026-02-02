@@ -1,175 +1,168 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
+using System.Data;
+using System.Data.SqlClient;
+using System.Web.Configuration;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using System.Data.SqlClient;
-using System.Data;
-using System.Web.Configuration;
 
 namespace PBA.masters
 {
     public partial class BudgetCategory : System.Web.UI.Page
     {
-        string sqlconn = WebConfigurationManager.ConnectionStrings["conn"].ConnectionString;
-
-
+        // ✅ Consistent connection string variable
+        private readonly string cs = WebConfigurationManager.ConnectionStrings["conn"].ConnectionString;
 
         protected void Page_Load(object sender, EventArgs e)
         {
-           //lblMessage.Text = "First request";
             if (!IsPostBack)
             {
-                //if (Session["user"] != null)
-                //{
-
-                //}
-                fillCategory_Type();
-                fillgrid();
-
+                FillCategoryType();
+                FillGrid();
             }
         }
-        protected void fillCategory_Type()
+
+        // ================= LOAD CATEGORY TYPES =================
+        protected void FillCategoryType()
         {
-            SqlConnection con = new SqlConnection(sqlconn);
-            con.Open();
-            string sqlstr = "select Category_Id,Category_Type from BudgetCategories order by Category_Id ";
-            SqlDataAdapter da = new SqlDataAdapter(sqlstr, con);
-            DataTable dt = new DataTable();
-            da.Fill(dt);
-            if (dt.Rows.Count > 0)
+            using (SqlConnection con = new SqlConnection(cs))
             {
-                ddlCategory_Type.DataSource = dt;
+                string sqlstr = "SELECT Category_Id, Category_Type FROM BudgetCategories ORDER BY Category_Id";
+                SqlDataAdapter da = new SqlDataAdapter(sqlstr, con);
+                DataTable dt = new DataTable();
+                da.Fill(dt);
 
-                ddlCategory_Type.DataTextField = "Category_Type";
-                ddlCategory_Type.DataValueField = "Category_Id";
-                ddlCategory_Type.DataBind();
-                ddlCategory_Type.Items.Insert(0, "--Select--");
+                if (dt.Rows.Count > 0)
+                {
+                    ddlCategory_Type.DataSource = dt;
+                    ddlCategory_Type.DataTextField = "Category_Type";
+                    ddlCategory_Type.DataValueField = "Category_Id";
+                    ddlCategory_Type.DataBind();
+                    ddlCategory_Type.Items.Insert(0, "--Select--");
+                }
             }
-        
         }
-        protected void fillgrid()
+
+        // ================= LOAD GRID =================
+        protected void FillGrid()
         {
-            SqlConnection con = new SqlConnection(sqlconn);
-            con.Open();
-            string sqlstr = "select Category_Id,Category_Name,Category_Type from  BudgetCategories order by Category_Id ";
-            SqlDataAdapter da = new SqlDataAdapter(sqlstr, con);
-            DataTable dt = new DataTable();
-            da.Fill(dt);
-            if (dt.Rows.Count > 0)
+            using (SqlConnection con = new SqlConnection(cs))
             {
-                GvBudgetCategory.DataSource = dt;
-                GvBudgetCategory.DataBind();
+                string sqlstr = "SELECT Category_Id, Category_Name, Category_Type FROM BudgetCategories ORDER BY Category_Id";
+                SqlDataAdapter da = new SqlDataAdapter(sqlstr, con);
+                DataTable dt = new DataTable();
+                da.Fill(dt);
 
+                if (dt.Rows.Count > 0)
+                {
+                    GvBudgetCategory.DataSource = dt;
+                    GvBudgetCategory.DataBind();
+                }
+                else
+                {
+                    Response.Write("Records Not found");
+                }
             }
-            else
-                Response.Write("Records Not found");
         }
-        protected void clearControls()
+
+        // ================= CLEAR CONTROLS =================
+        protected void ClearControls()
         {
             txtCategory_Id.Text = string.Empty;
             txtCategory_Name.Text = string.Empty;
             ddlCategory_Type.SelectedIndex = -1;
-            
         }
 
-        protected void btnNew_click(object sender, EventArgs e)
+        protected void btnNew_Click(object sender, EventArgs e)
         {
-            clearControls();
+            ClearControls();
         }
 
-        protected void btnSave_click(object sender, EventArgs e)
+        // ================= SAVE =================
+        protected void btnSave_Click(object sender, EventArgs e)
         {
-            SqlConnection con = new SqlConnection("Data Source=.;Initial Catalog=PBA;Persist Security Info=True;User ID=sa;Password=123456");
-            con.Open();
-            string sqlstr = "Insert into BudgetCategories (Category_Id,Category_Name,Category_Type) values('" + txtCategory_Id.Text + "','" + txtCategory_Name.Text + "','" + ddlCategory_Type.SelectedValue + "')";
-            SqlCommand cmd = new SqlCommand(sqlstr, con);
-            int result = cmd.ExecuteNonQuery();
-            if (result == 1)
+            using (SqlConnection con = new SqlConnection(cs))
             {
-                Response.Write("inserted successfully");
-                fillgrid();
-            }
-            con.Close();
-        }
+                string sqlstr = "INSERT INTO BudgetCategories (Category_Id, Category_Name, Category_Type) VALUES (@Id, @Name, @Type)";
+                SqlCommand cmd = new SqlCommand(sqlstr, con);
+                cmd.Parameters.AddWithValue("@Id", txtCategory_Id.Text);
+                cmd.Parameters.AddWithValue("@Name", txtCategory_Name.Text);
+                cmd.Parameters.AddWithValue("@Type", ddlCategory_Type.SelectedValue);
 
-        protected void btnUpdate_click(object sender, EventArgs e)
-        {
-            SqlConnection con = new SqlConnection("Data Source=.;Initial Catalog=PBA;Persist Security Info=True;User ID=sa;Password=123456");
-            {
                 con.Open();
-                string sqlstr = "UPDATE BudgetCategories set Category_Id = '" + txtCategory_Id.Text + "',Category_Name='" + txtCategory_Name.Text + "',Category_Type='" + ddlCategory_Type.SelectedValue + "' from BudgetCategories where Category_Id = '" + txtCategory_Id.Text + "'";
-                using (SqlCommand cmd = new SqlCommand(sqlstr, con))
+                int result = cmd.ExecuteNonQuery();
+                if (result == 1)
                 {
-                    int result = cmd.ExecuteNonQuery();
-                    if (result == 1)
-                    {
-                        Response.Write("Record Updated Successfully");
-                        fillgrid();
-                    }
-                    else
-                    {
-                        Response.Write("Error Occurred while Updating");
-                    }
+                    Response.Write("Inserted successfully");
+                    FillGrid();
                 }
             }
         }
 
-        protected void btnDelete_click(object sender, EventArgs e)
+        // ================= UPDATE =================
+        protected void btnUpdate_Click(object sender, EventArgs e)
         {
-            SqlConnection con = new SqlConnection("Data Source=.;Initial Catalog=PBA;Persist Security Info=True;User ID=sa;Password=123456");
+            using (SqlConnection con = new SqlConnection(cs))
             {
+                string sqlstr = "UPDATE BudgetCategories SET Category_Name = @Name, Category_Type = @Type WHERE Category_Id = @Id";
+                SqlCommand cmd = new SqlCommand(sqlstr, con);
+                cmd.Parameters.AddWithValue("@Id", txtCategory_Id.Text);
+                cmd.Parameters.AddWithValue("@Name", txtCategory_Name.Text);
+                cmd.Parameters.AddWithValue("@Type", ddlCategory_Type.SelectedValue);
+
                 con.Open();
-                string sqlstr = "DELETE FROM BudgetCategories where Category_Id='" + txtCategory_Id.Text + "'";
-                using (SqlCommand cmd = new SqlCommand(sqlstr, con))
+                int result = cmd.ExecuteNonQuery();
+                if (result == 1)
                 {
-                    int result = cmd.ExecuteNonQuery();
-                    if (result == 1)
-                    {
-                        Response.Write("Deletion Successful");
-                        fillgrid();
-                    }
-                    else
-                    {
-                        Response.Write("Deletion Failed");
-                    }
+                    Response.Write("Record Updated Successfully");
+                    FillGrid();
+                }
+                else
+                {
+                    Response.Write("Error Occurred while Updating");
                 }
             }
         }
 
-        protected void btnClose_click(object sender, EventArgs e)
+        // ================= DELETE =================
+        protected void btnDelete_Click(object sender, EventArgs e)
         {
-            string homepage = @"~\Home.aspx";
-            Response.Redirect(homepage);
-        }
-        
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                string sqlstr = "DELETE FROM BudgetCategories WHERE Category_Id = @Id";
+                SqlCommand cmd = new SqlCommand(sqlstr, con);
+                cmd.Parameters.AddWithValue("@Id", txtCategory_Id.Text);
 
-        protected void GvUserDetails_SelectedIndexChanged1(object sender, EventArgs e)
+                con.Open();
+                int result = cmd.ExecuteNonQuery();
+                if (result == 1)
+                {
+                    Response.Write("Deletion Successful");
+                    FillGrid();
+                }
+                else
+                {
+                    Response.Write("Deletion Failed");
+                }
+            }
+        }
+
+        // ================= CLOSE =================
+        protected void btnClose_Click(object sender, EventArgs e)
+        {
+            Response.Redirect("~/Home.aspx");
+        }
+
+        // ================= GRID SELECTION =================
+        protected void GvBudgetCategory_SelectedIndexChanged(object sender, EventArgs e)
         {
             txtCategory_Id.Text = GvBudgetCategory.SelectedRow.Cells[1].Text;
             txtCategory_Name.Text = GvBudgetCategory.SelectedRow.Cells[2].Text;
             ddlCategory_Type.SelectedValue = GvBudgetCategory.SelectedRow.Cells[3].Text;
-
         }
 
         protected void ddlCategory_Type_SelectedIndexChanged(object sender, EventArgs e)
         {
-            //SqlConnection con = new SqlConnection(sqlconn);
-            //con.Open();
-            //string sqlstr = "select Category_Type from BudgetCategories order by Category_Id ";
-            //SqlDataAdapter da = new SqlDataAdapter(sqlstr, con);
-            //DataTable dt = new DataTable();
-            //da.Fill(dt);
-            //if (dt.Rows.Count > 0)
-            //{
-            //    ddlCategory_Type.DataSource = dt;
-            //    ddlCategory_Type.DataTextField = "Category_Type";
-            //    ddlCategory_Type.DataBind();
-            //    ddlCategory_Type.Items.Insert(0, "--select--");
-
-            //}
-        
+            // Optional: reload categories if needed
         }
     }
 }

@@ -1,195 +1,163 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Web.UI;
-using System.Web.UI.WebControls;
-using System.Data.SqlClient;
 using System.Data;
+using System.Data.SqlClient;
 using System.Web.Configuration;
-
 
 namespace PBA.Admin
 {
     public partial class UserCreation : System.Web.UI.Page
     {
-        string sqlconn = WebConfigurationManager.ConnectionStrings["conn"].ConnectionString;
+        string cs = WebConfigurationManager
+                    .ConnectionStrings["conn"]
+                    .ConnectionString;
+
         protected void Page_Load(object sender, EventArgs e)
         {
-            
             if (!IsPostBack)
             {
-               // if (Session["User"] != null)
-                {
-                    fillgrid();
-
-                }
-                fillRole();
+                FillRoles();
+                FillGrid();
             }
         }
-        protected void fillgrid()
+
+        // ================== LOAD GRID ==================
+        void FillGrid()
         {
-            SqlConnection con = new SqlConnection(sqlconn);
-            con.Open();
-            string sqlstr = "select  Id,UserName,Password,CPassword,PhoneNumber,Email,Role from tbl_Customer order by Id ";
-            SqlDataAdapter da = new SqlDataAdapter(sqlstr, con);
-            DataTable dt = new DataTable();
-            da.Fill(dt);
-            if (dt.Rows.Count > 0)
+            using (SqlConnection con = new SqlConnection(cs))
             {
+                string q = @"SELECT User_Id, UserName, Email, Role
+                             FROM tbl_Customer
+                             ORDER BY User_Id";
+
+                SqlDataAdapter da = new SqlDataAdapter(q, con);
+                DataTable dt = new DataTable();
+                da.Fill(dt);
+
                 GvUserDetails.DataSource = dt;
                 GvUserDetails.DataBind();
-
             }
-            else
-                Response.Write("Records Not found");
         }
-        protected void fillRole()
-        {
-            SqlConnection con = new SqlConnection(sqlconn);
-            con.Open();
-            string sqlstr = "Select RoleId,RoleName from tbl_Roles order by RoleId";
-            SqlDataAdapter da = new SqlDataAdapter(sqlstr, con);
-            DataTable dt = new DataTable();
-            da.Fill(dt);
-            if (dt.Rows.Count > 0)
-            {
-                ddlRole.DataSource = dt;
 
+        // ================== LOAD ROLES ==================
+        void FillRoles()
+        {
+            using (SqlConnection con = new SqlConnection(cs))
+            {
+                string q = "SELECT RoleId, RoleName FROM tbl_Roles";
+                SqlDataAdapter da = new SqlDataAdapter(q, con);
+                DataTable dt = new DataTable();
+                da.Fill(dt);
+
+                ddlRole.DataSource = dt;
                 ddlRole.DataTextField = "RoleName";
                 ddlRole.DataValueField = "RoleId";
                 ddlRole.DataBind();
-                ddlRole.Items.Insert(0, "--Select--");
 
+                ddlRole.Items.Insert(0, "--Select--");
             }
         }
-        protected void clearControls()
-        {
-            txtUser_Id.Text = string.Empty;
-            txtUserName.Text = string.Empty;
-            txtPassword.Text = string.Empty;
-            txtCpassword.Text = string.Empty;
-            txtPhoneNumber.Text = string.Empty;
-            txtEmail.Text = string.Empty;
-            ddlRole.SelectedIndex = -1;
 
-        }
-
+        // ================== NEW ==================
         protected void btnNew_click(object sender, EventArgs e)
         {
-            clearControls();
-
+            Clear();
         }
 
+        // ================== SAVE ==================
         protected void btnSave_click(object sender, EventArgs e)
         {
-             SqlConnection con = new SqlConnection(sqlconn);
-            con.Open();
-            string sqlstr = "insert into tbl_Customer(User_Id, UserName,Password,CPassword,PhoneNumber,Email,Role)Values('"+ txtUser_Id.Text + "','" + txtUserName.Text + "','" + txtPassword.Text + "','" + txtCpassword.Text + "'," + txtPhoneNumber.Text + ",'" + txtEmail.Text + "','" + ddlRole.SelectedValue + "')";
-            SqlCommand cmd = new SqlCommand(sqlstr, con);
-            int result = cmd.ExecuteNonQuery();
-            if (result == 1)
+            using (SqlConnection con = new SqlConnection(cs))
             {
-                Response.Write("Record Insterted Successfully");
-                fillgrid();
-            }
-            else
-            {
-                Response.Write("Insertion failed");
-            }
-            con.Close();
+                string q = @"INSERT INTO tbl_Customer
+                            (UserName, Password, CPassword, PhoneNumber, Email, Role)
+                            VALUES
+                            (@UserName, @Password, @CPassword, @Phone, @Email, @Role)";
 
+                SqlCommand cmd = new SqlCommand(q, con);
+                cmd.Parameters.AddWithValue("@UserName", txtUserName.Text.Trim());
+                cmd.Parameters.AddWithValue("@Password", txtPassword.Text.Trim());
+                cmd.Parameters.AddWithValue("@CPassword", txtCpassword.Text.Trim());
+                cmd.Parameters.AddWithValue("@Phone", txtPhoneNumber.Text.Trim());
+                cmd.Parameters.AddWithValue("@Email", txtEmail.Text.Trim());
+                cmd.Parameters.AddWithValue("@Role", ddlRole.SelectedValue);
+
+                con.Open();
+                cmd.ExecuteNonQuery();
+            }
+
+            Clear();
+            FillGrid();
         }
 
+        // ================== UPDATE ==================
         protected void btnUpdate_click(object sender, EventArgs e)
         {
-             SqlConnection con = new SqlConnection(sqlconn);
+            int id = Convert.ToInt32(GvUserDetails.SelectedDataKey.Value);
+
+            using (SqlConnection con = new SqlConnection(cs))
             {
+                string q = @"UPDATE tbl_Customer SET
+                             UserName=@UserName,
+                             Password=@Password,
+                             CPassword=@CPassword,
+                             PhoneNumber=@Phone,
+                             Email=@Email,
+                             Role=@Role
+                             WHERE User_Id=@Id";
+
+                SqlCommand cmd = new SqlCommand(q, con);
+                cmd.Parameters.AddWithValue("@Id", id);
+                cmd.Parameters.AddWithValue("@UserName", txtUserName.Text.Trim());
+                cmd.Parameters.AddWithValue("@Password", txtPassword.Text.Trim());
+                cmd.Parameters.AddWithValue("@CPassword", txtCpassword.Text.Trim());
+                cmd.Parameters.AddWithValue("@Phone", txtPhoneNumber.Text.Trim());
+                cmd.Parameters.AddWithValue("@Email", txtEmail.Text.Trim());
+                cmd.Parameters.AddWithValue("@Role", ddlRole.SelectedValue);
+
                 con.Open();
-                string sqlstr = "UPDATE tbl_Customer SET UserName='" +txtUserName.Text +"', Password = '" + txtPassword.Text + "', CPassword = '" + txtCpassword.Text + "', PhoneNumber = '" + txtPhoneNumber.Text + "', Email = '" + txtEmail.Text + "', Role = '" + ddlRole.SelectedValue + "'from tbl_Customer WHERE User_Id = '" + txtUser_Id.Text + "'";
-                using (SqlCommand cmd = new SqlCommand(sqlstr, con))
-                {
-                    int result = cmd.ExecuteNonQuery();
-                    if (result == 1)
-                    {
-                        Response.Write("Record Updated Successfully");
-                        fillgrid();
-                    }
-                    else
-                    {
-                        Response.Write("Error Occurred while Updating");
-                    }
-                }
+                cmd.ExecuteNonQuery();
             }
 
+            Clear();
+            FillGrid();
         }
 
+        // ================== DELETE ==================
         protected void btnDelete_click(object sender, EventArgs e)
         {
-              SqlConnection con = new SqlConnection(sqlconn);
+            int id = Convert.ToInt32(GvUserDetails.SelectedDataKey.Value);
+
+            using (SqlConnection con = new SqlConnection(cs))
             {
+                SqlCommand cmd =
+                    new SqlCommand("DELETE FROM tbl_Customer WHERE User_Id=@Id", con);
+                cmd.Parameters.AddWithValue("@Id", id);
+
                 con.Open();
-                string sqlstr = "DELETE FROM tbl_Customer WHERE User_Id = '" + txtUser_Id.Text + "'";
-                using (SqlCommand cmd = new SqlCommand(sqlstr, con))
-                {
-                    int result = cmd.ExecuteNonQuery();
-                    if (result == 1)
-                    {
-                        Response.Write("Deletion Successful");
-                        fillgrid();
-                    }
-                    else
-                    {
-                        Response.Write("Deletion Failed");
-                    }
-                }
+                cmd.ExecuteNonQuery();
             }
 
+            Clear();
+            FillGrid();
         }
 
-        protected void btnClose_click(object sender, EventArgs e)
-        {
-             string homepage = @"~\Home.aspx";
-            Response.Redirect(homepage);
-
-        }
-
-        
-
+        // ================== GRID SELECT ==================
         protected void GvUserDetails_SelectedIndexChanged(object sender, EventArgs e)
         {
             txtUserName.Text = GvUserDetails.SelectedRow.Cells[2].Text;
-            txtPassword.Text = GvUserDetails.SelectedRow.Cells[3].Text;
-            txtPhoneNumber.Text = GvUserDetails.SelectedRow.Cells[5].Text;
-            txtEmail.Text = GvUserDetails.SelectedRow.Cells[6].Text;
-            //ddlRole.SelectedValue = GvUserDetails.SelectedRow.Cells[7].Text;
+            txtEmail.Text = GvUserDetails.SelectedRow.Cells[3].Text;
+            ddlRole.SelectedValue = GvUserDetails.SelectedRow.Cells[4].Text;
         }
 
-        protected void txtUser_Id_TextChanged(object sender, EventArgs e)
+        // ================== CLEAR ==================
+        void Clear()
         {
-            SqlConnection con = new SqlConnection(sqlconn);
-            con.Open();
-            string sqlstr = "select UserName,Password,CPassword,PhoneNumber,Email,Role from tbl_Customer where User_Id='" + txtUser_Id.Text + "' ";
-            SqlCommand cmd = new SqlCommand(sqlstr, con);
-            SqlDataReader rdr = cmd.ExecuteReader();
-            if (rdr.HasRows)
-            {
-                while (rdr.Read())
-                {
-
-                    txtUser_Id.Text = rdr["User_Id"].ToString();
-                    txtUserName.Text = rdr["UserName"].ToString();
-                    txtPassword.Text = rdr["Password"].ToString();
-                    txtCpassword.Text = rdr["CPassword"].ToString();
-                    txtPhoneNumber.Text = rdr["PhoneNumber"].ToString();
-                    txtEmail.Text = rdr["Email"].ToString();
-                    ddlRole.SelectedValue = rdr["Role"].ToString();
-                }
-            }
-            else
-            {
-                Response.Write("Record Not Found");
-            }
+            txtUserName.Text = "";
+            txtPassword.Text = "";
+            txtCpassword.Text = "";
+            txtPhoneNumber.Text = "";
+            txtEmail.Text = "";
+            ddlRole.SelectedIndex = 0;
         }
     }
 }

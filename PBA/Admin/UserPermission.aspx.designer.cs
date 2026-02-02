@@ -7,20 +7,13 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace PBA.Admin {
-    
-    
-    public partial class UserPermission {
-        
-        /// <summary>
-        /// lblheading control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Label lblheading;
-        
+namespace PBA.Admin
+{
+
+
+    public partial class UserPermission
+    {
+
         /// <summary>
         /// lblRole control.
         /// </summary>
@@ -29,7 +22,7 @@ namespace PBA.Admin {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Label lblRole;
-        
+
         /// <summary>
         /// ddlRole control.
         /// </summary>
@@ -38,7 +31,7 @@ namespace PBA.Admin {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.DropDownList ddlRole;
-        
+
         /// <summary>
         /// lblUserName control.
         /// </summary>
@@ -47,7 +40,7 @@ namespace PBA.Admin {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Label lblUserName;
-        
+
         /// <summary>
         /// ddlUsers control.
         /// </summary>
@@ -56,7 +49,7 @@ namespace PBA.Admin {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.DropDownList ddlUsers;
-        
+
         /// <summary>
         /// Gvuserpermission control.
         /// </summary>

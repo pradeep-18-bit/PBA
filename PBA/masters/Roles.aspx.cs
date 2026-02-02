@@ -1,160 +1,160 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
+using System.Data;
+using System.Data.SqlClient;
+using System.Web.Configuration;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-using System.Data.SqlClient;
-using System.Data;
-using System.Web.Configuration;
 
 namespace PBA.masters
 {
     public partial class Roles : System.Web.UI.Page
     {
-        string sqlconstr = WebConfigurationManager.ConnectionStrings["conn"].ConnectionString;
+        // ✅ Consistent connection string variable
+        private readonly string cs = WebConfigurationManager.ConnectionStrings["conn"].ConnectionString;
+
         protected void Page_Load(object sender, EventArgs e)
         {
             if (!IsPostBack)
             {
-                // if (Session["Role"].ToString() == "1".ToString())
-                //  {
-                //fillgrid();
-                // }
-                fillRole();
-
-
+                FillRole();
             }
         }
 
-        protected void clearControls()
+        // ================= CLEAR CONTROLS =================
+        protected void ClearControls()
         {
             txtRoleId.Text = string.Empty;
             txtRoleName.Text = string.Empty;
-
         }
 
         protected void btnNew_Click(object sender, EventArgs e)
         {
-            clearControls();
+            ClearControls();
         }
 
+        // ================= SAVE =================
         protected void btnSave_Click(object sender, EventArgs e)
         {
-            SqlConnection con = new SqlConnection(sqlconstr);
-            con.Open();
-            string sqlstr = "Insert into tbl_Roles (RoleId,RoleName)values('"+ txtRoleId.Text +"','" + txtRoleName.Text + "')";
-            SqlCommand cmd = new SqlCommand(sqlstr, con);
-            int result = cmd.ExecuteNonQuery();
-            if (result == 1)
+            using (SqlConnection con = new SqlConnection(cs))
             {
-                Response.Write("Record inserted Sucessfully");
-                //if (Session["User"] != null)
-                //{
-                fillRole();
-                //}
+                string sqlstr = "INSERT INTO tbl_Roles (RoleId, RoleName) VALUES (@RoleId, @RoleName)";
+                SqlCommand cmd = new SqlCommand(sqlstr, con);
+                cmd.Parameters.AddWithValue("@RoleId", txtRoleId.Text);
+                cmd.Parameters.AddWithValue("@RoleName", txtRoleName.Text);
 
+                con.Open();
+                int result = cmd.ExecuteNonQuery();
+                if (result == 1)
+                {
+                    Response.Write("Record inserted successfully");
+                    FillRole();
+                }
             }
-            con.Close();
-
         }
 
+        // ================= UPDATE =================
         protected void btnUpdate_Click(object sender, EventArgs e)
         {
-            SqlConnection con = new SqlConnection(sqlconstr);
-            con.Open();
-            string sqlstr = "Update tbl_Roles set RoleName='" + txtRoleName.Text + "' from tbl_Roles where RoleId='" + txtRoleId.Text + "' ";
-            SqlCommand cmd = new SqlCommand(sqlstr, con);
-            int result = cmd.ExecuteNonQuery();
-            if (result == 1)
+            using (SqlConnection con = new SqlConnection(cs))
             {
-                Response.Write("Record Updated Sucessfully");
-                fillRole();
-            }
-            else
-            {
+                string sqlstr = "UPDATE tbl_Roles SET RoleName = @RoleName WHERE RoleId = @RoleId";
+                SqlCommand cmd = new SqlCommand(sqlstr, con);
+                cmd.Parameters.AddWithValue("@RoleId", txtRoleId.Text);
+                cmd.Parameters.AddWithValue("@RoleName", txtRoleName.Text);
 
-                Response.Write("Error Occured while Updating");
+                con.Open();
+                int result = cmd.ExecuteNonQuery();
+                if (result == 1)
+                {
+                    Response.Write("Record updated successfully");
+                    FillRole();
+                }
+                else
+                {
+                    Response.Write("Error occurred while updating");
+                }
             }
         }
 
+        // ================= DELETE =================
         protected void btnDelete_Click(object sender, EventArgs e)
         {
-            SqlConnection con = new SqlConnection(sqlconstr);
+            using (SqlConnection con = new SqlConnection(cs))
             {
+                string sqlstr = "DELETE FROM tbl_Roles WHERE RoleId = @RoleId";
+                SqlCommand cmd = new SqlCommand(sqlstr, con);
+                cmd.Parameters.AddWithValue("@RoleId", txtRoleId.Text);
+
                 con.Open();
-                string sqlstr = "DELETE FROM tbl_Roles WHERE RoleId = '" + txtRoleId.Text + "'";
-                using (SqlCommand cmd = new SqlCommand(sqlstr, con))
+                int result = cmd.ExecuteNonQuery();
+                if (result == 1)
                 {
-                    int result = cmd.ExecuteNonQuery();
-                    if (result == 1)
-                    {
-                        Response.Write("Deletion Successful");
-                        fillRole();
-                    }
-                    else
-                    {
-                        Response.Write("Deletion Failed");
-                    }
+                    Response.Write("Deletion successful");
+                    FillRole();
+                }
+                else
+                {
+                    Response.Write("Deletion failed");
                 }
             }
         }
 
+        // ================= SEARCH BY ROLE ID OR NAME =================
         protected void txtRoleId_TextChanged(object sender, EventArgs e)
         {
-            SqlConnection con = new SqlConnection(sqlconstr);
-            con.Open();
-            string sqlstr = "select RoleId,RoleName from tbl_Roles where RoleId=" + txtRoleId.Text + " or RoleName='" + txtRoleName.Text + "'";
-            SqlCommand cmd = new SqlCommand(sqlstr, con);
-            SqlDataReader rdr = cmd.ExecuteReader();
-            if (rdr.HasRows)
+            using (SqlConnection con = new SqlConnection(cs))
             {
+                string sqlstr = "SELECT RoleId, RoleName FROM tbl_Roles WHERE RoleId = @RoleId OR RoleName = @RoleName";
+                SqlCommand cmd = new SqlCommand(sqlstr, con);
+                cmd.Parameters.AddWithValue("@RoleId", txtRoleId.Text);
+                cmd.Parameters.AddWithValue("@RoleName", txtRoleName.Text);
 
-                while (rdr.Read())
+                con.Open();
+                SqlDataReader rdr = cmd.ExecuteReader();
+                if (rdr.HasRows)
                 {
-
-                    txtRoleId.Text = rdr["RoleId"].ToString();
-                    txtRoleName.Text = rdr["RoleName"].ToString();
-
+                    while (rdr.Read())
+                    {
+                        txtRoleId.Text = rdr["RoleId"].ToString();
+                        txtRoleName.Text = rdr["RoleName"].ToString();
+                    }
+                }
+                else
+                {
+                    Response.Write("Record not found");
                 }
             }
-
-            else
-            {
-                //ClearControls();
-                Response.Write("Record Not Found");
-            }
         }
 
-
-        protected void fillRole()
+        // ================= LOAD ROLES =================
+        protected void FillRole()
         {
-            SqlConnection con = new SqlConnection(sqlconstr);
-            con.Open();
-            string sqlstr = "Select RoleId,RoleName from tbl_Roles order by RoleId";
-            SqlDataAdapter da = new SqlDataAdapter(sqlstr, con);
-            DataTable dt = new DataTable();
-            da.Fill(dt);
-            if (dt.Rows.Count > 0)
+            using (SqlConnection con = new SqlConnection(cs))
             {
-                Gvtbl_RoleDetails.DataSource = dt;
-                Gvtbl_RoleDetails.DataBind();
+                string sqlstr = "SELECT RoleId, RoleName FROM tbl_Roles ORDER BY RoleId";
+                SqlDataAdapter da = new SqlDataAdapter(sqlstr, con);
+                DataTable dt = new DataTable();
+                da.Fill(dt);
+
+                if (dt.Rows.Count > 0)
+                {
+                    Gvtbl_RoleDetails.DataSource = dt;
+                    Gvtbl_RoleDetails.DataBind();
+                }
             }
         }
 
+        // ================= CLOSE =================
         protected void btnClose_Click(object sender, EventArgs e)
         {
-            string homepage = @"~\Home.aspx";
-            Response.Redirect(homepage);
-
+            Response.Redirect("~/Home.aspx");
         }
 
+        // ================= GRID SELECTION =================
         protected void Gvtbl_RoleDetails_SelectedIndexChanged(object sender, EventArgs e)
         {
             txtRoleId.Text = Gvtbl_RoleDetails.SelectedRow.Cells[1].Text;
             txtRoleName.Text = Gvtbl_RoleDetails.SelectedRow.Cells[2].Text;
-          
         }
     }
 }
-       

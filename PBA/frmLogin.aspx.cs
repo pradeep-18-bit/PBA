@@ -1,47 +1,57 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Web.UI;
-using System.Web.UI.WebControls;
+using System.Configuration;
 using System.Data.SqlClient;
-using System.Web.Configuration;
 
 namespace PBA
 {
     public partial class frmLogin : System.Web.UI.Page
     {
-        string sqlconn = WebConfigurationManager.ConnectionStrings["conn"].ConnectionString;
         protected void Page_Load(object sender, EventArgs e)
         {
-
         }
+
         protected void btnLogin_Click(object sender, EventArgs e)
         {
-            if (txtUsername.Text != "" && txtPassword.Text != "")
+            string cs = ConfigurationManager.ConnectionStrings["conn"].ConnectionString;
+
+            try
             {
-                SqlConnection con = new SqlConnection(sqlconn);
-                con.Open();
-                string sqlstr = "select Role,UserName from tbl_Customer where UserName='" + txtUsername.Text + "' and Password='" + txtPassword.Text + "'";
-                SqlCommand cmd = new SqlCommand(sqlstr, con);
-                string role = Convert.ToString(cmd.ExecuteScalar());
-                if (role != "")
+                using (SqlConnection con = new SqlConnection(cs))
                 {
-                    Session["Role"] = role;
-                    string homepage = @"~\Home.aspx";
-                    Response.Redirect(homepage);
+                    con.Open();
+
+                    string query = @"
+                        SELECT User_Id, Role
+                        FROM tbl_Customer
+                        WHERE UserName = @UserName AND Password = @Password";
+
+                    SqlCommand cmd = new SqlCommand(query, con);
+                    cmd.Parameters.AddWithValue("@UserName", txtUsername.Text.Trim());
+                    cmd.Parameters.AddWithValue("@Password", txtPassword.Text.Trim());
+
+                    SqlDataReader dr = cmd.ExecuteReader();
+
+                    if (dr.Read())
+                    {
+                        Session["User_Id"] = dr["User_Id"].ToString();
+                        Session["Role"] = dr["Role"].ToString();
+                        Response.Redirect("Home.aspx");
+                    }
+                    else
+                    {
+                        Response.Write("<script>alert('Invalid username or password');</script>");
+                    }
                 }
-                else
-                    Response.Write("Incorrect Username or Password");
             }
-            else
-                Response.Write("Plz enter correct username and password");
+            catch (Exception ex)
+            {
+                Response.Write("<script>alert('" + ex.Message.Replace("'", "") + "');</script>");
+            }
         }
 
         protected void btnSignUp_Click(object sender, EventArgs e)
         {
-            string signuppage = @"~\SignUp.aspx";
-            Response.Redirect(signuppage);
+            Response.Redirect("SignUp.aspx");
         }
     }
 }
